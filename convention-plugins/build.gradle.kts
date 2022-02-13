@@ -17,6 +17,8 @@ dependencies {
     implementation("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.3")
     // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.jvm
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10")
+    // https://plugins.gradle.org/plugin/com.diffplug.spotless
+    implementation("com.diffplug.spotless:spotless-plugin-gradle:6.2.2")
 }
 
 publishing {
