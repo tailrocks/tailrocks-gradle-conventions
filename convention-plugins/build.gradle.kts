@@ -3,8 +3,8 @@ plugins {
     `maven-publish`
 }
 
-group = "com.tailrocks.gradle.conventions"
-version = "1.0-SNAPSHOT"
+group = "com.tailrocks.gradle"
+version = "1.0"
 
 repositories {
     gradlePluginPortal()
