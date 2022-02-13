@@ -3,6 +3,13 @@ plugins {
     `maven-publish`
 }
 
+val projectLicenseName: String? by project
+val projectLicenseUrl: String? by project
+val projectScmUrl: String? by project
+val projectScmConnection: String? by project
+val projectScmDeveloperConnection: String? by project
+val projectIssueManagementUrl: String? by project
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
@@ -24,6 +31,24 @@ publishing {
                     }
                 }
                 // @end temp fix
+                url.set(projectScmUrl)
+                if (projectLicenseName != null || projectLicenseUrl != null) {
+                    licenses {
+                        license {
+                            name.set(projectLicenseName)
+                            url.set(projectLicenseUrl)
+                            distribution.set("repo")
+                        }
+                    }
+                }
+                scm {
+                    url.set(projectScmUrl)
+                    connection.set(projectScmConnection)
+                    developerConnection.set(projectScmDeveloperConnection)
+                }
+                issueManagement {
+                    url.set(projectIssueManagementUrl)
+                }
             }
         }
     }
