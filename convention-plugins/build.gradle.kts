@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.tailrocks.gradle.conventions"
-version = "1.0"
+version = "1.0-SNAPSHOT"
 
 repositories {
     gradlePluginPortal()
@@ -17,4 +17,25 @@ dependencies {
     implementation("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.3")
     // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.jvm
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10")
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "SonatypeSnapshots"
+            setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots")
+            credentials {
+                username = System.getenv("OSSRH_USER") ?: return@credentials
+                password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
+            }
+        }
+        maven {
+            name = "SonatypeReleases"
+            setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
+            credentials {
+                username = System.getenv("OSSRH_USER") ?: return@credentials
+                password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
+            }
+        }
+    }
 }

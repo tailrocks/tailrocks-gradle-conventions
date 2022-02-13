@@ -1,3 +1,5 @@
-rootProject.name = "convention-plugins"
+rootProject.name = "gradle-conventions"
 
-include("convention-plugins")
+include(
+    "convention-plugins"
+)
