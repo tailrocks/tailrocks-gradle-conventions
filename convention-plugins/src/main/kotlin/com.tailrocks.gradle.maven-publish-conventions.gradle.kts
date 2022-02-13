@@ -32,6 +32,8 @@ publishing {
                     }
                 }
                 // @end temp fix
+                name.set(project.name)
+                description.set(project.description)
                 url.set(projectScmUrl)
                 if (projectLicenseName != null || projectLicenseUrl != null) {
                     licenses {
