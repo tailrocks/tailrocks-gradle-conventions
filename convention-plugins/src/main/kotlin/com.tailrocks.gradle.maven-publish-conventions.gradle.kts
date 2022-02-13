@@ -9,6 +9,7 @@ val projectScmUrl: String? by project
 val projectScmConnection: String? by project
 val projectScmDeveloperConnection: String? by project
 val projectIssueManagementUrl: String? by project
+val projectPublishingRepositories: String? by project
 
 publishing {
     publications {
@@ -51,6 +52,33 @@ publishing {
                 if (projectIssueManagementUrl != null) {
                     issueManagement {
                         url.set(projectIssueManagementUrl)
+                    }
+                }
+            }
+        }
+    }
+    if (projectPublishingRepositories != null) {
+        val names = projectPublishingRepositories!!.split(",")
+
+        repositories {
+            if (names.contains("SonatypeOssSnapshots")) {
+                maven {
+                    name = "SonatypeOssSnapshots"
+                    setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots")
+                    credentials {
+                        username = System.getenv("OSSRH_USER") ?: return@credentials
+                        password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
+                    }
+                }
+            }
+
+            if (names.contains("SonatypeOssReleases")) {
+                maven {
+                    name = "SonatypeOssReleases"
+                    setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
+                    credentials {
+                        username = System.getenv("OSSRH_USER") ?: return@credentials
+                        password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
                     }
                 }
             }
