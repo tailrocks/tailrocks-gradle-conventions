@@ -41,13 +41,17 @@ publishing {
                         }
                     }
                 }
-                scm {
-                    url.set(projectScmUrl)
-                    connection.set(projectScmConnection)
-                    developerConnection.set(projectScmDeveloperConnection)
+                if (projectScmUrl != null || projectScmConnection != null || projectScmDeveloperConnection != null) {
+                    scm {
+                        url.set(projectScmUrl)
+                        connection.set(projectScmConnection)
+                        developerConnection.set(projectScmDeveloperConnection)
+                    }
                 }
-                issueManagement {
-                    url.set(projectIssueManagementUrl)
+                if (projectIssueManagementUrl != null) {
+                    issueManagement {
+                        url.set(projectIssueManagementUrl)
+                    }
                 }
             }
         }
