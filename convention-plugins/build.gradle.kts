@@ -2,13 +2,7 @@ plugins {
     `kotlin-dsl`
     `maven-publish`
     signing
-
-    // https://plugins.gradle.org/plugin/com.diffplug.spotless
-    id("com.diffplug.spotless") version "6.3.0"
 }
-
-group = "com.tailrocks.gradle"
-version = "0.1.0"
 
 dependencies {
     // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
@@ -19,7 +13,63 @@ dependencies {
     implementation("com.diffplug.spotless:spotless-plugin-gradle:6.3.0")
 }
 
+val projectLicenseShortName: String by project
+val projectLicenseName: String by project
+val projectLicenseUrl: String by project
+val projectScmUrl: String by project
+val projectScmConnection: String by project
+val projectScmDeveloperConnection: String by project
+val projectIssueManagementUrl: String by project
+
 publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            versionMapping {
+                allVariants {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                // TODO temp fix: https://github.com/gradle/gradle/issues/10861
+                withXml {
+                    val root = asNode()
+                    var nodes = root["dependencyManagement"] as groovy.util.NodeList
+                    while (nodes.isNotEmpty()) {
+                        root.remove(nodes.first() as groovy.util.Node)
+
+                        nodes = root["dependencyManagement"] as groovy.util.NodeList
+                    }
+                }
+                // @end temp fix
+                name.set(project.name)
+                description.set(project.description)
+                url.set(projectScmUrl)
+                licenses {
+                    license {
+                        name.set(projectLicenseName)
+                        url.set(projectLicenseUrl)
+                        distribution.set("repo")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("donbeave")
+                        name.set("Alexey Zhokhov")
+                        email.set("alexey@zhokhov.com")
+                    }
+                }
+                scm {
+                    url.set(projectScmUrl)
+                    connection.set(projectScmConnection)
+                    developerConnection.set(projectScmDeveloperConnection)
+                }
+                issueManagement {
+                    url.set(projectIssueManagementUrl)
+                }
+            }
+        }
+    }
     repositories {
         maven {
             name = "SonatypeOssSnapshots"
@@ -47,16 +97,4 @@ signing {
 
     useInMemoryPgpKeys(key, password)
     sign(publishing.publications)
-}
-
-spotless {
-    java {
-        removeUnusedImports()
-        trimTrailingWhitespace()
-        endWithNewline()
-        targetExclude("**/generated/**")
-    }
-    kotlinGradle {
-        ktlint()
-    }
 }
