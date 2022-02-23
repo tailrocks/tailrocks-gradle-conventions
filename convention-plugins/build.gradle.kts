@@ -4,6 +4,8 @@ plugins {
     signing
 }
 
+description = "Common used conventions to simplify configurations for Gradle projects."
+
 dependencies {
     // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
     implementation("com.github.ben-manes:gradle-versions-plugin:0.42.0")
