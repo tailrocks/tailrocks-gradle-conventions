@@ -30,6 +30,16 @@ jobs:
       - name: Publish Snapshots
         if: github.event.inputs.repo == 'snapshots'
         run: ./gradlew publishAllPublicationsToSonatypeOssSnapshotsRepository
+        env:
+          OSSRH_USER: ${{ secrets.OSSRH_USER }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
       - name: Publish Releases
         if: github.event.inputs.repo == 'releases'
         run: ./gradlew publishAllPublicationsToSonatypeOssReleasesRepository
+        env:
+          OSSRH_USER: ${{ secrets.OSSRH_USER }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
