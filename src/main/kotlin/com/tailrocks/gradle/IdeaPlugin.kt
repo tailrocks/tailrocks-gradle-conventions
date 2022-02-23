@@ -8,6 +8,7 @@ class IdeaPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         project.plugins.apply(org.gradle.plugins.ide.idea.IdeaPlugin::class.java)
+
         val ideaModel = project.extensions.getByType(IdeaModel::class.java)
 
         ideaModel.module.isDownloadJavadoc = false

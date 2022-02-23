@@ -56,6 +56,10 @@ gradlePlugin {
             id = "com.tailrocks.maven-publish"
             implementationClass = "com.tailrocks.gradle.MavenPublishPlugin"
         }
+        create("tailrocksSigningPlugin") {
+            id = "com.tailrocks.signing"
+            implementationClass = "com.tailrocks.gradle.SigningPlugin"
+        }
         create("tailrocksSpotlessPlugin") {
             id = "com.tailrocks.spotless"
             implementationClass = "com.tailrocks.gradle.SpotlessPlugin"

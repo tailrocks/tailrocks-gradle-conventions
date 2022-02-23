@@ -2,14 +2,100 @@ package com.tailrocks.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.kotlin.dsl.create
+import org.gradle.kotlin.dsl.get
 
 class MavenPublishPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
-        val extension = project.extensions.create("greeting", MavenPublishExtension::class.java)
-        project.task("hello") {
-            doLast {
-                println("${extension.message.get()} from ${extension.greeter.get()}")
+        project.plugins.apply(org.gradle.api.publish.maven.plugins.MavenPublishPlugin::class.java)
+
+        val projectLicenseName: String? by project.properties
+        val projectLicenseUrl: String? by project.properties
+        val projectScmUrl: String? by project.properties
+        val projectScmConnection: String? by project.properties
+        val projectScmDeveloperConnection: String? by project.properties
+        val projectIssueManagementUrl: String? by project.properties
+        val projectPublishingRepositories: String? by project.properties
+
+        val publishingExtension = project.extensions.getByType(PublishingExtension::class.java)
+
+        publishingExtension.apply {
+            publications {
+                create<MavenPublication>("mavenJava").apply {
+                    from(project.components["java"])
+                    versionMapping {
+                        allVariants {
+                            fromResolutionResult()
+                        }
+                    }
+                    pom {
+                        // TODO temp fix: https://github.com/gradle/gradle/issues/10861
+                        withXml {
+                            val root = asNode()
+                            var nodes = root["dependencyManagement"] as groovy.util.NodeList
+                            while (nodes.isNotEmpty()) {
+                                root.remove(nodes.first() as groovy.util.Node)
+
+                                nodes = root["dependencyManagement"] as groovy.util.NodeList
+                            }
+                        }
+                        // @end temp fix
+                        name.set(project.name)
+                        description.set(project.description)
+                        url.set(projectScmUrl)
+                        if (projectLicenseName != null || projectLicenseUrl != null) {
+                            licenses {
+                                license {
+                                    name.set(projectLicenseName)
+                                    url.set(projectLicenseUrl)
+                                    distribution.set("repo")
+                                }
+                            }
+                        }
+                        if (projectScmUrl != null || projectScmConnection != null || projectScmDeveloperConnection != null) {
+                            scm {
+                                url.set(projectScmUrl)
+                                connection.set(projectScmConnection)
+                                developerConnection.set(projectScmDeveloperConnection)
+                            }
+                        }
+                        if (projectIssueManagementUrl != null) {
+                            issueManagement {
+                                url.set(projectIssueManagementUrl)
+                            }
+                        }
+                    }
+                }
+            }
+            if (projectPublishingRepositories != null) {
+                val names = projectPublishingRepositories!!.split(",")
+
+                repositories {
+                    if (names.contains("SonatypeOssSnapshots")) {
+                        maven {
+                            name = "SonatypeOssSnapshots"
+                            setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots")
+                            credentials {
+                                username = System.getenv("OSSRH_USER") ?: return@credentials
+                                password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
+                            }
+                        }
+                    }
+
+                    if (names.contains("SonatypeOssReleases")) {
+                        maven {
+                            name = "SonatypeOssReleases"
+                            setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
+                            credentials {
+                                username = System.getenv("OSSRH_USER") ?: return@credentials
+                                password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
+                            }
+                        }
+                    }
+                }
             }
         }
     }
