@@ -1,6 +1,7 @@
 plugins {
     `kotlin-dsl`
     `maven-publish`
+    signing
 
     // https://plugins.gradle.org/plugin/com.diffplug.spotless
     id("com.diffplug.spotless") version "6.3.0"
@@ -37,6 +38,15 @@ publishing {
             }
         }
     }
+}
+
+signing {
+    val key = System.getenv("SIGNING_KEY") ?: return@signing
+    val password = System.getenv("SIGNING_PASSWORD") ?: return@signing
+    val publishing: PublishingExtension by project
+
+    useInMemoryPgpKeys(key, password)
+    sign(publishing.publications)
 }
 
 spotless {
