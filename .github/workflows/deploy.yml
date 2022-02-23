@@ -28,8 +28,8 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts') }}
           restore-keys: ${{ runner.os }}-gradle
       - name: Publish Snapshots
-        if: inputs.repo == 'snapshots'
+        if: github.event.inputs.repo == 'snapshots'
         run: ./gradlew publishAllPublicationsToSonatypeOssSnapshotsRepository
       - name: Publish Releases
-        if: inputs.repo == 'releases'
+        if: github.event.inputs.repo == 'releases'
         run: ./gradlew publishAllPublicationsToSonatypeOssReleasesRepository
