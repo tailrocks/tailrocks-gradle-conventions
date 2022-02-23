@@ -1,0 +1,29 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up OpenJDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Cache Gradle packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts') }}
+          restore-keys: ${{ runner.os }}-gradle
+      - name: Spotless Check
+        run: ./gradlew spotlessCheck
+      - name: Test
+        run: ./gradlew test
+      - name: Build
+        run: ./gradlew build
