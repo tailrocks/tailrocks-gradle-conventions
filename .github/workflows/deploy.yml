@@ -3,17 +3,33 @@ name: Deploy
 on:
   workflow_dispatch:
     inputs:
-      logLevel:
-        description: 'Log level'
+      repo:
+        description: 'Repository'
         required: true
-        default: 'warning'
-      tags:
-        description: 'Test scenario tags'
-        required: false
+        type: choice
+        options:
+          - snapshots
+          - releases
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Test
-        run: echo Hello World.
+      - uses: actions/checkout@v2
+      - name: Set up OpenJDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Cache Gradle packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts') }}
+          restore-keys: ${{ runner.os }}-gradle
+      - name: Publish Snapshots
+        if: inputs.repo == 'snapshots'
+        run: ./gradlew publishAllPublicationsToSonatypeOssSnapshotsRepository
+      - name: Publish Releases
+        if: inputs.repo == 'releases'
+        run: ./gradlew publishAllPublicationsToSonatypeOssReleasesRepository
