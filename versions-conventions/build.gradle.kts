@@ -2,6 +2,8 @@ plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
     `maven-publish`
+
+    id("com.gradle.plugin-publish")
 }
 
 dependencies {
@@ -14,6 +16,21 @@ gradlePlugin {
         create("tailrocksVersionsPlugin") {
             id = "com.tailrocks.versions"
             implementationClass = "com.tailrocks.gradle.VersionsPlugin"
+        }
+    }
+}
+
+pluginBundle {
+    website = "https://github.com/tailrocks/tailrocks-gradle-conventions"
+    vcsUrl = "https://github.com/tailrocks/tailrocks-gradle-conventions.git"
+    tags = listOf("conventions")
+
+    (plugins) {
+        "tailrocksVersionsPlugin" {
+            displayName = "Tailrocks Versions conventions"
+            description = "Versions conventions"
+            tags = listOf("versions")
+            version = project.version as String
         }
     }
 }
