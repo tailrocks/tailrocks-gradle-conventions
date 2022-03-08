@@ -18,7 +18,7 @@ java {
 
 allprojects {
     group = "com.tailrocks.gradle"
-    version = "0.1.0"
+    version = "0.1.3"
 
     apply(plugin = "com.diffplug.spotless")
 
