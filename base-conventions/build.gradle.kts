@@ -39,35 +39,35 @@ pluginBundle {
     (plugins) {
         "tailrocksIdeaPlugin" {
             displayName = "Tailrocks IDEA conventions"
-            description = "IDEA conventions"
+            description = "Common Gradle IDEA plugin conventions used by tailrocks projects."
             tags = listOf("idea")
             version = project.version as String
         }
 
         "tailrocksJavaPlugin" {
             displayName = "Tailrocks Java conventions"
-            description = "Java conventions"
+            description = "Common Gradle Java plugin conventions used by tailrocks projects."
             tags = listOf("java")
             version = project.version as String
         }
 
         "tailrocksJunitPlugin" {
             displayName = "Tailrocks JUnit conventions"
-            description = "JUnit conventions"
+            description = "Common Gradle JUnit plugin conventions used by tailrocks projects."
             tags = listOf("junit")
             version = project.version as String
         }
 
         "tailrocksMavenPublishPlugin" {
             displayName = "Tailrocks Maven Publish conventions"
-            description = "Maven Publish conventions"
+            description = "Common Gradle Maven Publish plugin conventions used by tailrocks projects."
             tags = listOf("maven", "publish")
             version = project.version as String
         }
 
         "tailrocksSigningPlugin" {
             displayName = "Tailrocks Signing conventions"
-            description = "Signing conventions"
+            description = "Common Gradle Signing plugin conventions used by tailrocks projects."
             tags = listOf("signing")
             version = project.version as String
         }

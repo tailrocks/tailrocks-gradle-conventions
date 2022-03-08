@@ -28,7 +28,7 @@ pluginBundle {
     (plugins) {
         "tailrocksSpotlessPlugin" {
             displayName = "Tailrocks Spotless conventions"
-            description = "Spotless conventions"
+            description = "Common Gradle Spotless plugin conventions used by tailrocks projects."
             tags = listOf("spotless")
             version = project.version as String
         }
