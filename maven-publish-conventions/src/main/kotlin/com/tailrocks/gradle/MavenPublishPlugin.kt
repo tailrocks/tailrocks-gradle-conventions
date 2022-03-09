@@ -110,6 +110,28 @@ class MavenPublishPlugin : Plugin<Project> {
                             }
                         }
                     }
+
+                    if (names.contains("ArtifactorySnapshots")) {
+                        maven {
+                            name = "ArtifactorySnapshots"
+                            setUrl("${System.getenv("ARTIFACTORY_CONTEXT_URL")}/${System.getenv("ARTIFACTORY_SNAPSHOT_REPO_KEY")}")
+                            credentials {
+                                username = System.getenv("ARTIFACTORY_USERNAME") ?: return@credentials
+                                password = System.getenv("ARTIFACTORY_PASSWORD") ?: return@credentials
+                            }
+                        }
+                    }
+
+                    if (names.contains("ArtifactoryReleases")) {
+                        maven {
+                            name = "ArtifactoryReleases"
+                            setUrl("${System.getenv("ARTIFACTORY_CONTEXT_URL")}/${System.getenv("ARTIFACTORY_RELEASE_REPO_KEY")}")
+                            credentials {
+                                username = System.getenv("ARTIFACTORY_USERNAME") ?: return@credentials
+                                password = System.getenv("ARTIFACTORY_PASSWORD") ?: return@credentials
+                            }
+                        }
+                    }
                 }
             }
         }
