@@ -27,13 +27,13 @@ class MavenPublishPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.plugins.apply(org.gradle.api.publish.maven.plugins.MavenPublishPlugin::class.java)
 
-        val projectLicenseName: String? by project.properties
-        val projectLicenseUrl: String? by project.properties
-        val projectScmUrl: String? by project.properties
-        val projectScmConnection: String? by project.properties
-        val projectScmDeveloperConnection: String? by project.properties
-        val projectIssueManagementUrl: String? by project.properties
-        val projectPublishingRepositories: String? by project.properties
+        val projectLicenseName = project.properties["projectLicenseName"] as String?
+        val projectLicenseUrl = project.properties["projectLicenseUrl"] as String?
+        val projectScmUrl = project.properties["projectScmUrl"] as String?
+        val projectScmConnection = project.properties["projectScmConnection"] as String?
+        val projectScmDeveloperConnection = project.properties["projectScmDeveloperConnection"] as String?
+        val projectIssueManagementUrl = project.properties["projectIssueManagementUrl"] as String?
+        val projectPublishingRepositories = project.properties["projectPublishingRepositories"] as String?
 
         val publishingExtension = project.extensions.getByType(PublishingExtension::class.java)
 
@@ -86,7 +86,7 @@ class MavenPublishPlugin : Plugin<Project> {
                 }
             }
             if (projectPublishingRepositories != null) {
-                val names = projectPublishingRepositories!!.split(",")
+                val names = projectPublishingRepositories.split(",")
 
                 repositories {
                     if (names.contains("SonatypeOssSnapshots")) {
