@@ -6,6 +6,8 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
+version = "0.1.3"
+
 dependencies {
     // https://plugins.gradle.org/plugin/com.diffplug.spotless
     implementation("com.diffplug.spotless:spotless-plugin-gradle:6.3.0")

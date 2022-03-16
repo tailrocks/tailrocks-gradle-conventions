@@ -6,6 +6,8 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
+version = "0.1.6"
+
 gradlePlugin {
     plugins {
         create("tailrocksMavenPublishPlugin") {

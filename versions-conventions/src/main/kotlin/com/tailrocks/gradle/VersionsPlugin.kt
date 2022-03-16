@@ -16,6 +16,7 @@
 package com.tailrocks.gradle
 
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+import com.github.benmanes.gradle.versions.updates.gradle.GradleReleaseChannel
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.withType
@@ -26,6 +27,10 @@ class VersionsPlugin : Plugin<Project> {
         project.plugins.apply(com.github.benmanes.gradle.versions.VersionsPlugin::class.java)
 
         project.tasks.withType<DependencyUpdatesTask> {
+            gradleReleaseChannel = GradleReleaseChannel.CURRENT.id
+            checkConstraints = true
+            revision = "release"
+
             resolutionStrategy {
                 componentSelection {
                     all {

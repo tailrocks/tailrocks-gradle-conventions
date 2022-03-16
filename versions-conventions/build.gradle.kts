@@ -6,6 +6,8 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
+version = "0.1.4"
+
 dependencies {
     // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
     implementation("com.github.ben-manes:gradle-versions-plugin:0.42.0")
