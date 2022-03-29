@@ -36,6 +36,9 @@ class JunitPlugin : Plugin<Project> {
                 systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
                 systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
             }
+
+            systemProperties["junit.jupiter.testmethod.order.default"] = "org.junit.jupiter.api.MethodOrderer\$MethodName"
+            systemProperties["junit.jupiter.testclass.order.default"] = "org.junit.jupiter.api.ClassOrderer\$ClassName"
         }
     }
 
