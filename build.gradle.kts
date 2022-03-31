@@ -2,7 +2,7 @@ plugins {
     java
 
     // https://plugins.gradle.org/plugin/com.gradle.plugin-publish
-    id("com.gradle.plugin-publish") version "0.20.0" apply false
+    id("com.gradle.plugin-publish") version "0.21.0" apply false
 
     // https://plugins.gradle.org/plugin/com.diffplug.spotless
     id("com.diffplug.spotless") version "6.3.0"
