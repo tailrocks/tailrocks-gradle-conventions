@@ -18,6 +18,9 @@ gradlePlugin {
         create("tailrocksVersionsPlugin") {
             id = "com.tailrocks.versions"
             implementationClass = "com.tailrocks.gradle.VersionsPlugin"
+            displayName = "Tailrocks Versions conventions"
+            description = "Common Gradle Versions plugin conventions used by tailrocks projects."
+            version = project.version as String
         }
     }
 }
@@ -26,13 +29,7 @@ pluginBundle {
     website = "https://github.com/tailrocks/tailrocks-gradle-conventions"
     vcsUrl = "https://github.com/tailrocks/tailrocks-gradle-conventions.git"
     tags = listOf("conventions")
-
-    (plugins) {
-        "tailrocksVersionsPlugin" {
-            displayName = "Tailrocks Versions conventions"
-            description = "Common Gradle Versions plugin conventions used by tailrocks projects."
-            tags = listOf("versions")
-            version = project.version as String
-        }
-    }
+    pluginTags = mapOf(
+        "tailrocksVersionsPlugin" to listOf("versions")
+    )
 }

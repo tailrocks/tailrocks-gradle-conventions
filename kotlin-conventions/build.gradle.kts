@@ -18,6 +18,9 @@ gradlePlugin {
         create("tailrocksKotlinPlugin") {
             id = "com.tailrocks.kotlin"
             implementationClass = "com.tailrocks.gradle.KotlinPlugin"
+            displayName = "Tailrocks Kotlin conventions"
+            description = "Common Gradle Kotlin plugin conventions used by tailrocks projects."
+            version = project.version as String
         }
     }
 }
@@ -26,13 +29,7 @@ pluginBundle {
     website = "https://github.com/tailrocks/tailrocks-gradle-conventions"
     vcsUrl = "https://github.com/tailrocks/tailrocks-gradle-conventions.git"
     tags = listOf("conventions")
-
-    (plugins) {
-        "tailrocksKotlinPlugin" {
-            displayName = "Tailrocks Kotlin conventions"
-            description = "Common Gradle Kotlin plugin conventions used by tailrocks projects."
-            tags = listOf("kotlin")
-            version = project.version as String
-        }
-    }
+    pluginTags = mapOf(
+        "tailrocksKotlinPlugin" to listOf("kotlin")
+    )
 }
