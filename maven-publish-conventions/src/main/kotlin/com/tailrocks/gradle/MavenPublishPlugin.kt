@@ -34,6 +34,7 @@ class MavenPublishPlugin : Plugin<Project> {
         val projectScmDeveloperConnection = project.properties["projectScmDeveloperConnection"] as String?
         val projectIssueManagementUrl = project.properties["projectIssueManagementUrl"] as String?
         val projectPublishingRepositories = project.properties["projectPublishingRepositories"] as String?
+        val projectDescription = project.properties["projectDescription"] as String?
 
         val publishingExtension = project.extensions.getByType(PublishingExtension::class.java)
 
@@ -59,7 +60,7 @@ class MavenPublishPlugin : Plugin<Project> {
                         }
                         // @end temp fix
                         name.set(project.name)
-                        description.set(project.description)
+                        description.set(project.description ?: projectDescription)
                         url.set(projectScmUrl)
                         if (projectLicenseName != null || projectLicenseUrl != null) {
                             licenses {
