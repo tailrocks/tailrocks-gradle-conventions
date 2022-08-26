@@ -46,6 +46,12 @@ class MavenPublishPlugin : Plugin<Project> {
                         allVariants {
                             fromResolutionResult()
                         }
+                        usage("java-api") {
+                            fromResolutionOf("runtimeClasspath")
+                        }
+                        usage("java-runtime") {
+                            fromResolutionResult()
+                        }
                     }
                     pom {
                         // TODO temp fix: https://github.com/gradle/gradle/issues/10861
