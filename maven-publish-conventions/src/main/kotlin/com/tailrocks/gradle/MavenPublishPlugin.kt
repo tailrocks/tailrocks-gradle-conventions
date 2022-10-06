@@ -17,9 +17,12 @@ package com.tailrocks.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.authentication.http.HttpHeaderAuthentication
 import org.gradle.kotlin.dsl.create
+import org.gradle.kotlin.dsl.credentials
 import org.gradle.kotlin.dsl.get
 
 class MavenPublishPlugin : Plugin<Project> {
@@ -139,9 +142,32 @@ class MavenPublishPlugin : Plugin<Project> {
                             }
                         }
                     }
+
+                    if (names.contains("GitlabPackageRegistry")) {
+                        maven {
+                            name = "GitlabPackageRegistry"
+                            setUrl(
+                                "${System.getenv("CI_API_V4_URL")}/projects/" +
+                                    "${System.getenv("CI_PROJECT_ID")}/packages/maven"
+                            )
+                            System.getenv("CI_JOB_TOKEN")?.let {
+                                credentials(HttpHeaderCredentials::class) {
+                                    name = "Job-Token"
+                                    value = System.getenv("CI_JOB_TOKEN")
+                                }
+                            } ?: run {
+                                credentials(HttpHeaderCredentials::class) {
+                                    name = "Private-Token"
+                                    value = System.getenv("GITLAB_PRIVATE_TOKEN")
+                                }
+                            }
+                            authentication {
+                                create<HttpHeaderAuthentication>("header")
+                            }
+                        }
+                    }
                 }
             }
         }
     }
-
 }
