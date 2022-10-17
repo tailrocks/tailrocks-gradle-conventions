@@ -38,7 +38,7 @@ class SonarqubePlugin : Plugin<Project> {
                 property("sonar.pullrequest.branch", System.getenv("CI_EXTERNAL_PULL_REQUEST_SOURCE_BRANCH_NAME"))
                 property("sonar.pullrequest.base", System.getenv("CI_EXTERNAL_PULL_REQUEST_TARGET_BRANCH_NAME"))
                 property("sonar.scm.revision", System.getenv("CI_EXTERNAL_PULL_REQUEST_SOURCE_BRANCH_SHA"))
-                property("sonar.pullrequest.provider", System.getProperty("sonar.pullrequest.provider", "github"))
+                property("sonar.pullrequest.provider", System.getenv("SONAR_PULLREQUEST_PROVIDER"))
             }
             property(
                 "sonar.coverage.jacoco.xmlReportPaths",
