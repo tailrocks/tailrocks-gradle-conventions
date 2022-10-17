@@ -27,17 +27,18 @@ class SonarqubePlugin : Plugin<Project> {
         model.properties {
             property("sonar.sourceEncoding", "UTF-8")
             property("sonar.verbose", true)
-            property("sonar.host.url", System.getenv("SONAR_HOST"))
-            property("sonar.login", System.getenv("SONAR_TOKEN"))
-            property("sonar.projectVersion", System.getenv("GIT_COMMIT_SHORTHASH") ?: "")
-            if (System.getenv("CI_COMMIT_REF_NAME") != "master") {
+            property("sonar.host.url", System.getenv("SONAR_HOST_URL"))
+            property("sonar.login", System.getenv("SONAR_LOGIN"))
+            property("sonar.projectVersion", System.getenv("SONAR_PROJECT_VERSION") ?: "")
+            if (
+                System.getenv("CI_COMMIT_REF_NAME") != "master" ||
+                System.getenv("CI_COMMIT_REF_NAME") != "main"
+            ) {
                 property("sonar.pullrequest.key", System.getenv("CI_EXTERNAL_PULL_REQUEST_IID"))
                 property("sonar.pullrequest.branch", System.getenv("CI_EXTERNAL_PULL_REQUEST_SOURCE_BRANCH_NAME"))
                 property("sonar.pullrequest.base", System.getenv("CI_EXTERNAL_PULL_REQUEST_TARGET_BRANCH_NAME"))
                 property("sonar.scm.revision", System.getenv("CI_EXTERNAL_PULL_REQUEST_SOURCE_BRANCH_SHA"))
                 property("sonar.pullrequest.provider", System.getProperty("sonar.pullrequest.provider", "github"))
-            } else {
-                property("sonar.branch.name", System.getenv("CI_COMMIT_REF_NAME") ?: "master")
             }
             property(
                 "sonar.coverage.jacoco.xmlReportPaths",
