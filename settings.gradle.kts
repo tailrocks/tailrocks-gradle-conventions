@@ -9,6 +9,7 @@ include(
     "kotlin-conventions",
     "maven-publish-conventions",
     "signing-conventions",
+    "sonarqube-conventions",
     "spotless-conventions",
     "versions-conventions"
 )
