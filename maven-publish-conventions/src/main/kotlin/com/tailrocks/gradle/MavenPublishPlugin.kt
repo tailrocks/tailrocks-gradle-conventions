@@ -30,6 +30,8 @@ class MavenPublishPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.plugins.apply(org.gradle.api.publish.maven.plugins.MavenPublishPlugin::class.java)
 
+        val gradlePluginPublishAvailable = project.plugins.findPlugin("com.gradle.plugin-publish") != null
+
         val projectLicenseName = project.properties["projectLicenseName"] as String?
         val projectLicenseUrl = project.properties["projectLicenseUrl"] as String?
         val projectScmUrl = project.properties["projectScmUrl"] as String?
@@ -43,53 +45,57 @@ class MavenPublishPlugin : Plugin<Project> {
 
         publishingExtension.apply {
             publications {
-                create<MavenPublication>("mavenJava").apply {
-                    from(project.components["java"])
-                    versionMapping {
-                        allVariants {
-                            fromResolutionResult()
-                        }
-                        usage("java-api") {
-                            fromResolutionOf("runtimeClasspath")
-                        }
-                        usage("java-runtime") {
-                            fromResolutionResult()
-                        }
-                    }
-                    pom {
-                        // TODO temp fix: https://github.com/gradle/gradle/issues/10861
-                        withXml {
-                            val root = asNode()
-                            var nodes = root["dependencyManagement"] as groovy.util.NodeList
-                            while (nodes.isNotEmpty()) {
-                                root.remove(nodes.first() as groovy.util.Node)
-
-                                nodes = root["dependencyManagement"] as groovy.util.NodeList
+                // skip creating maven publication for modules with
+                // https://plugins.gradle.org/plugin/com.gradle.plugin-publish
+                if (!gradlePluginPublishAvailable) {
+                    create<MavenPublication>("mavenJava").apply {
+                        from(project.components["java"])
+                        versionMapping {
+                            allVariants {
+                                fromResolutionResult()
+                            }
+                            usage("java-api") {
+                                fromResolutionOf("runtimeClasspath")
+                            }
+                            usage("java-runtime") {
+                                fromResolutionResult()
                             }
                         }
-                        // @end temp fix
-                        name.set(project.name)
-                        description.set(project.description ?: projectDescription)
-                        url.set(projectScmUrl)
-                        if (projectLicenseName != null || projectLicenseUrl != null) {
-                            licenses {
-                                license {
-                                    name.set(projectLicenseName)
-                                    url.set(projectLicenseUrl)
-                                    distribution.set("repo")
+                        pom {
+                            // TODO temp fix: https://github.com/gradle/gradle/issues/10861
+                            withXml {
+                                val root = asNode()
+                                var nodes = root["dependencyManagement"] as groovy.util.NodeList
+                                while (nodes.isNotEmpty()) {
+                                    root.remove(nodes.first() as groovy.util.Node)
+
+                                    nodes = root["dependencyManagement"] as groovy.util.NodeList
                                 }
                             }
-                        }
-                        if (projectScmUrl != null || projectScmConnection != null || projectScmDeveloperConnection != null) {
-                            scm {
-                                url.set(projectScmUrl)
-                                connection.set(projectScmConnection)
-                                developerConnection.set(projectScmDeveloperConnection)
+                            // @end temp fix
+                            name.set(project.name)
+                            description.set(project.description ?: projectDescription)
+                            url.set(projectScmUrl)
+                            if (projectLicenseName != null || projectLicenseUrl != null) {
+                                licenses {
+                                    license {
+                                        name.set(projectLicenseName)
+                                        url.set(projectLicenseUrl)
+                                        distribution.set("repo")
+                                    }
+                                }
                             }
-                        }
-                        if (projectIssueManagementUrl != null) {
-                            issueManagement {
-                                url.set(projectIssueManagementUrl)
+                            if (projectScmUrl != null || projectScmConnection != null || projectScmDeveloperConnection != null) {
+                                scm {
+                                    url.set(projectScmUrl)
+                                    connection.set(projectScmConnection)
+                                    developerConnection.set(projectScmDeveloperConnection)
+                                }
+                            }
+                            if (projectIssueManagementUrl != null) {
+                                issueManagement {
+                                    url.set(projectIssueManagementUrl)
+                                }
                             }
                         }
                     }
