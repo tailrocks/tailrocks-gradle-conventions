@@ -10,7 +10,7 @@ version = "0.1.5-SNAPSHOT"
 
 dependencies {
     // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.jvm
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.20")
     // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
     implementation("org.jetbrains.kotlin:kotlin-allopen:1.6.21")
 }
