@@ -6,11 +6,13 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-version = "0.1.4-SNAPSHOT"
+version = "0.1.4"
 
 dependencies {
     // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.jvm
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21")
+    // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
+    implementation("org.jetbrains.kotlin:kotlin-allopen:1.6.21")
 }
 
 gradlePlugin {
