@@ -10,7 +10,7 @@ version = "0.1.5-SNAPSHOT"
 
 dependencies {
     // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-    implementation("com.github.ben-manes:gradle-versions-plugin:0.43.0")
+    implementation("com.github.ben-manes:gradle-versions-plugin:0.44.0")
 }
 
 gradlePlugin {
