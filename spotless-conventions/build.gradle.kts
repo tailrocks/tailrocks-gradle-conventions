@@ -6,7 +6,7 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-version = "0.2.0-SNAPSHOT"
+version = "0.2.1-SNAPSHOT"
 
 dependencies {
     // https://plugins.gradle.org/plugin/com.diffplug.spotless
