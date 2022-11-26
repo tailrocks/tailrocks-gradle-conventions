@@ -23,7 +23,7 @@ class SonarqubePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.plugins.apply(org.sonarqube.gradle.SonarQubePlugin::class.java)
 
-        val model = project.extensions.getByType(org.sonarqube.gradle.SonarQubeExtension::class.java)
+        val model = project.extensions.getByType(org.sonarqube.gradle.SonarExtension::class.java)
         model.properties {
             property("sonar.sourceEncoding", "UTF-8")
             property("sonar.verbose", true)
@@ -46,4 +46,5 @@ class SonarqubePlugin : Plugin<Project> {
             )
         }
     }
+
 }
