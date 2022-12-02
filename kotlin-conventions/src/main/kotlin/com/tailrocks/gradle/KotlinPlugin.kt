@@ -25,6 +25,13 @@ class KotlinPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.plugins.apply(KotlinPlatformJvmPlugin::class.java)
 
+        val kotlinExtension =
+            project.extensions.getByType(org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension::class.java)
+
+        kotlinExtension.apply {
+            jvmToolchain(17)
+        }
+
         project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
             kotlinOptions {
                 freeCompilerArgs = listOf("-Xjsr305=strict")
