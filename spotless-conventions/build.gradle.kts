@@ -10,7 +10,7 @@ version = "0.2.1-SNAPSHOT"
 
 dependencies {
     // https://plugins.gradle.org/plugin/com.diffplug.spotless
-    implementation("com.diffplug.spotless:spotless-plugin-gradle:6.12.1")
+    implementation("com.diffplug.spotless:spotless-plugin-gradle:6.13.0")
 }
 
 gradlePlugin {
