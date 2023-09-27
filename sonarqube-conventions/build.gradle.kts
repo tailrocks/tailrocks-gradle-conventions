@@ -10,7 +10,7 @@ version = "0.1.1-SNAPSHOT"
 
 dependencies {
     // https://plugins.gradle.org/plugin/org.sonarqube
-    implementation("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.5.0.2730")
+    implementation("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:4.4.0.3356")
 }
 
 gradlePlugin {
