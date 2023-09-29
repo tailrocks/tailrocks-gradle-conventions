@@ -5,7 +5,7 @@ plugins {
     id("com.gradle.plugin-publish") version "1.1.0" apply false
 
     // https://plugins.gradle.org/plugin/com.diffplug.spotless
-    id("com.diffplug.spotless") version "6.12.1"
+    id("com.diffplug.spotless") version "6.22.0"
 }
 
 val javaVersion = 17
