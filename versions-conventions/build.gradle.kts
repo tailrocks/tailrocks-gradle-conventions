@@ -6,7 +6,7 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-version = "0.3.0-SNAPSHOT"
+version = "0.3.0"
 
 dependencies {
     // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
