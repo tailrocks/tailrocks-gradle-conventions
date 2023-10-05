@@ -23,6 +23,7 @@ gradlePlugin {
             displayName = "Tailrocks Kotlin conventions"
             description = "Common Gradle Kotlin plugin conventions used by tailrocks projects."
             version = project.version as String
+            tags = listOf("conventions", "kotlin")
         }
     }
 }

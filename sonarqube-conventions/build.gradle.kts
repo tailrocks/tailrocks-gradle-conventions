@@ -21,6 +21,7 @@ gradlePlugin {
             displayName = "Tailrocks Sonarqube conventions"
             description = "Common Sonarqube plugin conventions used by tailrocks projects."
             version = project.version as String
+            tags = listOf("conventions", "sonarqube")
         }
     }
 }

@@ -16,6 +16,7 @@ gradlePlugin {
             displayName = "Tailrocks IDEA conventions"
             description = "Common Gradle IDEA plugin conventions used by tailrocks projects."
             version = project.version as String
+            tags = listOf("conventions", "idea")
         }
     }
 }

@@ -21,6 +21,7 @@ gradlePlugin {
             displayName = "Tailrocks Versions conventions"
             description = "Common Gradle Versions plugin conventions used by tailrocks projects."
             version = project.version as String
+            tags = listOf("conventions", "versions")
         }
     }
 }
