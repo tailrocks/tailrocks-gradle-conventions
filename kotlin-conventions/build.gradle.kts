@@ -27,11 +27,7 @@ gradlePlugin {
     }
 }
 
-pluginBundle {
+gradlePlugin {
     website = "https://github.com/tailrocks/tailrocks-gradle-conventions"
     vcsUrl = "https://github.com/tailrocks/tailrocks-gradle-conventions.git"
-    tags = listOf("conventions")
-    pluginTags = mapOf(
-        "tailrocksKotlinPlugin" to listOf("kotlin")
-    )
 }
