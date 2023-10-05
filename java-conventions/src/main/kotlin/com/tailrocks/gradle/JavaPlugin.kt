@@ -33,7 +33,7 @@ class JavaPlugin : Plugin<Project> {
 
         val javaPluginExtension = project.extensions.getByType(JavaPluginExtension::class.java)
 
-        val javaVersion = 17
+        val javaVersion = 21
 
         javaPluginExtension.apply {
             toolchain {

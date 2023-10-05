@@ -23,10 +23,10 @@ import org.gradle.kotlin.dsl.withType
 class JunitPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
-        val isFailFast = System.getenv("GRADLE_FAIL_FAST") == null ||
-                System.getenv("GRADLE_FAIL_FAST").toLowerCase() == "true"
+        val isFailFast = System.getenv("TAILROCKS_GRADLE_FAIL_FAST") != null &&
+                System.getenv("TAILROCKS_GRADLE_FAIL_FAST").lowercase() == "true"
 
-        val isParallel = System.getenv("JUNIT_PARALLEL") == "true"
+        val isParallel = System.getenv("TAILROCKS_GRADLE_JUNIT_PARALLEL") == "true"
 
         project.tasks.withType<Test> {
             useJUnitPlatform()
@@ -37,8 +37,10 @@ class JunitPlugin : Plugin<Project> {
                 systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
             }
 
-            systemProperties["junit.jupiter.testmethod.order.default"] = "org.junit.jupiter.api.MethodOrderer\$MethodName"
-            systemProperties["junit.jupiter.testclass.order.default"] = "org.junit.jupiter.api.ClassOrderer\$ClassName"
+            systemProperties["junit.jupiter.testmethod.order.default"] =
+                "org.junit.jupiter.api.MethodOrderer\$MethodName"
+            systemProperties["junit.jupiter.testclass.order.default"] =
+                "org.junit.jupiter.api.ClassOrderer\$ClassName"
         }
     }
 

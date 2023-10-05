@@ -154,7 +154,7 @@ class MavenPublishPlugin : Plugin<Project> {
                             name = "GitlabPackageRegistry"
                             setUrl(
                                 "${System.getenv("CI_API_V4_URL")}/projects/" +
-                                    "${System.getenv("CI_PROJECT_ID")}/packages/maven"
+                                        "${System.getenv("CI_PROJECT_ID")}/packages/maven"
                             )
                             System.getenv("CI_JOB_TOKEN")?.let {
                                 credentials(HttpHeaderCredentials::class) {

@@ -6,11 +6,11 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-version = "0.1.1-SNAPSHOT"
+version = "0.2.0-SNAPSHOT"
 
 dependencies {
     // https://plugins.gradle.org/plugin/org.sonarqube
-    implementation("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.5.0.2730")
+    implementation("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:4.4.1.3373")
 }
 
 gradlePlugin {
