@@ -2,13 +2,13 @@ plugins {
     java
 
     // https://plugins.gradle.org/plugin/com.gradle.plugin-publish
-    id("com.gradle.plugin-publish") version "1.1.0" apply false
+    id("com.gradle.plugin-publish") version "1.2.1" apply false
 
     // https://plugins.gradle.org/plugin/com.diffplug.spotless
-    id("com.diffplug.spotless") version "6.12.1"
+    id("com.diffplug.spotless") version "6.22.0"
 }
 
-val javaVersion = 17
+val javaVersion = 21
 
 java {
     toolchain {
