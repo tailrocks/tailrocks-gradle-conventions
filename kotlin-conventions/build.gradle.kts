@@ -10,9 +10,9 @@ version = "0.3.0"
 
 dependencies {
     // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.jvm
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.22")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10")
     // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
-    implementation("org.jetbrains.kotlin:kotlin-allopen:1.7.22")
+    implementation("org.jetbrains.kotlin:kotlin-allopen:1.9.10")
 }
 
 gradlePlugin {
