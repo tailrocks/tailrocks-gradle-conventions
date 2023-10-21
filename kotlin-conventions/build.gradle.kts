@@ -8,16 +8,22 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-version = "0.5.0"
+version = "0.6.1"
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(17)
 }
 
 project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "20"
+        jvmTarget = "17"
         javaParameters = true
     }
     jvmTargetValidationMode.set(JvmTargetValidationMode.WARNING)
