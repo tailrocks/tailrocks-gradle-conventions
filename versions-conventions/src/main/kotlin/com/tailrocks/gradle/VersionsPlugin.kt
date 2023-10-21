@@ -31,14 +31,8 @@ class VersionsPlugin : Plugin<Project> {
             checkConstraints = true
             revision = "release"
 
-            resolutionStrategy {
-                componentSelection {
-                    all {
-                        if (isNonStable(candidate.version) && !isNonStable(currentVersion)) {
-                            reject("Release candidate")
-                        }
-                    }
-                }
+            rejectVersionIf {
+                isNonStable(candidate.version) && !isNonStable(currentVersion)
             }
         }
     }

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
+
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
@@ -6,11 +8,24 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-version = "0.3.0"
+version = "0.4.0"
+
+kotlin {
+    jvmToolchain(21)
+}
+
+project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs = listOf("-Xjsr305=strict")
+        jvmTarget = "20"
+        javaParameters = true
+    }
+    jvmTargetValidationMode.set(JvmTargetValidationMode.WARNING)
+}
 
 dependencies {
     // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-    implementation("com.github.ben-manes:gradle-versions-plugin:0.48.0")
+    implementation("com.github.ben-manes:gradle-versions-plugin:0.49.0")
 }
 
 gradlePlugin {

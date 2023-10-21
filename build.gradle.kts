@@ -8,11 +8,9 @@ plugins {
     id("com.diffplug.spotless") version "6.22.0"
 }
 
-val javaVersion = 21
-
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(javaVersion))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 

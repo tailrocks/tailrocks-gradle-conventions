@@ -29,13 +29,13 @@ class KotlinPlugin : Plugin<Project> {
             project.extensions.getByType(org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension::class.java)
 
         kotlinExtension.apply {
-            jvmToolchain(17)
+            jvmToolchain(19)
         }
 
         project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
             kotlinOptions {
                 freeCompilerArgs = listOf("-Xjsr305=strict")
-                jvmTarget = "17"
+                jvmTarget = "19"
                 javaParameters = true
             }
         }
