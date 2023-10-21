@@ -18,6 +18,7 @@ package com.tailrocks.gradle
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformJvmPlugin
 
 class KotlinPlugin : Plugin<Project> {
@@ -38,6 +39,7 @@ class KotlinPlugin : Plugin<Project> {
                 jvmTarget = "20"
                 javaParameters = true
             }
+            jvmTargetValidationMode.set(JvmTargetValidationMode.WARNING)
         }
     }
 
