@@ -5,7 +5,7 @@ plugins {
     id("com.gradle.plugin-publish") version "1.2.1" apply false
 
     // https://plugins.gradle.org/plugin/com.diffplug.spotless
-    id("com.diffplug.spotless") version "6.22.0"
+    id("com.diffplug.spotless") version "6.23.3"
 }
 
 java {
