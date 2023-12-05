@@ -31,7 +31,7 @@ project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 dependencies {
     // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-    implementation("com.github.ben-manes:gradle-versions-plugin:0.49.0")
+    implementation("com.github.ben-manes:gradle-versions-plugin:0.50.0")
 }
 
 gradlePlugin {
