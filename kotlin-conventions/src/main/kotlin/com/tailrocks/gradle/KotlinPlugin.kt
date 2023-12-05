@@ -19,12 +19,11 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformJvmPlugin
 
 class KotlinPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
-        project.plugins.apply(KotlinPlatformJvmPlugin::class.java)
+        project.plugins.apply("org.jetbrains.kotlin.jvm")
 
         val kotlinExtension =
             project.extensions.getByType(org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension::class.java)
