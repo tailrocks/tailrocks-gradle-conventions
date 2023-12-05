@@ -8,7 +8,7 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-version = "0.5.1"
+version = "0.5.2"
 
 java {
     toolchain {
