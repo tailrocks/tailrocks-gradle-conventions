@@ -49,30 +49,39 @@ class MavenPublishPlugin : Plugin<Project> {
                 // https://plugins.gradle.org/plugin/com.gradle.plugin-publish
                 if (!gradlePluginPublishAvailable) {
                     create<MavenPublication>("mavenJava").apply {
-                        from(project.components["java"])
-                        versionMapping {
-                            allVariants {
-                                fromResolutionResult()
-                            }
-                            usage("java-api") {
-                                fromResolutionOf("runtimeClasspath")
-                            }
-                            usage("java-runtime") {
-                                fromResolutionResult()
-                            }
-                        }
-                        pom {
-                            // TODO temp fix: https://github.com/gradle/gradle/issues/10861
-                            withXml {
-                                val root = asNode()
-                                var nodes = root["dependencyManagement"] as groovy.util.NodeList
-                                while (nodes.isNotEmpty()) {
-                                    root.remove(nodes.first() as groovy.util.Node)
-
-                                    nodes = root["dependencyManagement"] as groovy.util.NodeList
+                        // configuration for java library
+                        project.components.findByName("java")?.apply {
+                            from(project.components["java"])
+                            versionMapping {
+                                allVariants {
+                                    fromResolutionResult()
+                                }
+                                usage("java-api") {
+                                    fromResolutionOf("runtimeClasspath")
+                                }
+                                usage("java-runtime") {
+                                    fromResolutionResult()
                                 }
                             }
-                            // @end temp fix
+                            pom {
+                                // TODO temp fix: https://github.com/gradle/gradle/issues/10861
+                                withXml {
+                                    val root = asNode()
+                                    var nodes = root["dependencyManagement"] as groovy.util.NodeList
+                                    while (nodes.isNotEmpty()) {
+                                        root.remove(nodes.first() as groovy.util.Node)
+
+                                        nodes = root["dependencyManagement"] as groovy.util.NodeList
+                                    }
+                                }
+                                // @end temp fix
+                            }
+                        }
+                        // configuration for bom
+                        project.components.findByName("javaPlatform")?.apply {
+                            from(project.components["javaPlatform"])
+                        }
+                        pom {
                             name.set(project.name)
                             description.set(project.description ?: projectDescription)
                             url.set(projectScmUrl)
