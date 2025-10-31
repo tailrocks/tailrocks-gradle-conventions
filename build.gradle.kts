@@ -2,10 +2,10 @@ plugins {
     java
 
     // https://plugins.gradle.org/plugin/com.gradle.plugin-publish
-    id("com.gradle.plugin-publish") version "1.2.1" apply false
+    id("com.gradle.plugin-publish") version "2.0.0" apply false
 
     // https://plugins.gradle.org/plugin/com.diffplug.spotless
-    id("com.diffplug.spotless") version "6.23.3"
+    id("com.diffplug.spotless") version "8.0.0"
 }
 
 java {

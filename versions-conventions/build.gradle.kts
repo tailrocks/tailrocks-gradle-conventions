@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
 
 plugins {
@@ -8,23 +9,23 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-version = "0.5.2"
+version = "0.6.0"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "17"
-        javaParameters = true
+    compilerOptions {
+        freeCompilerArgs.set(listOf("-Xjsr305=strict"))
+        jvmTarget.set(JvmTarget.JVM_21)
+        javaParameters.set(true)
     }
     jvmTargetValidationMode.set(JvmTargetValidationMode.WARNING)
 }
