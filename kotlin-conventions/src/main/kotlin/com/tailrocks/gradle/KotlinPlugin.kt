@@ -19,7 +19,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 class KotlinPlugin : Plugin<Project> {
 
@@ -27,13 +29,13 @@ class KotlinPlugin : Plugin<Project> {
         project.plugins.apply("org.jetbrains.kotlin.jvm")
 
         val kotlinExtension =
-            project.extensions.getByType(org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension::class.java)
+            project.extensions.getByType(KotlinJvmProjectExtension::class.java)
 
         kotlinExtension.apply {
             jvmToolchain(21)
         }
 
-        project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        project.tasks.withType<KotlinCompile> {
             compilerOptions {
                 freeCompilerArgs.set(listOf("-Xjsr305=strict"))
                 jvmTarget.set(JvmTarget.JVM_21)
