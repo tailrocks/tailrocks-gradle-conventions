@@ -32,7 +32,7 @@ project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 dependencies {
     // https://plugins.gradle.org/plugin/com.diffplug.spotless
-    implementation("com.diffplug.spotless:spotless-plugin-gradle:6.23.3")
+    implementation("com.diffplug.spotless:spotless-plugin-gradle:8.0.0")
 }
 
 gradlePlugin {

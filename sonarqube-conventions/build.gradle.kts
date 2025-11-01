@@ -32,7 +32,7 @@ project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 dependencies {
     // https://plugins.gradle.org/plugin/org.sonarqube
-    implementation("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:4.4.1.3373")
+    implementation("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:7.0.1.6134")
 }
 
 gradlePlugin {

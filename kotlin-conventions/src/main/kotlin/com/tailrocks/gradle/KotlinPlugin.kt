@@ -18,6 +18,7 @@ package com.tailrocks.gradle
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
 
 class KotlinPlugin : Plugin<Project> {
@@ -33,10 +34,10 @@ class KotlinPlugin : Plugin<Project> {
         }
 
         project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-            kotlinOptions {
-                freeCompilerArgs = listOf("-Xjsr305=strict")
-                jvmTarget = "21"
-                javaParameters = true
+            compilerOptions {
+                freeCompilerArgs.set(listOf("-Xjsr305=strict"))
+                jvmTarget.set(JvmTarget.JVM_21)
+                javaParameters.set(true)
             }
             jvmTargetValidationMode.set(JvmTargetValidationMode.WARNING)
         }
