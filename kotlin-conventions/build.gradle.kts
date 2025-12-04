@@ -9,7 +9,7 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-version = "0.7.0"
+version = "0.8.0"
 
 java {
     toolchain {
@@ -32,9 +32,9 @@ project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 dependencies {
     // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.jvm
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25")
     // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
-    implementation("org.jetbrains.kotlin:kotlin-allopen:2.0.21")
+    implementation("org.jetbrains.kotlin:kotlin-allopen:1.9.25")
 }
 
 gradlePlugin {
