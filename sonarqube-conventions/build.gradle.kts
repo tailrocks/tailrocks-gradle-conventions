@@ -9,7 +9,7 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-version = "0.5.0"
+version = "0.6.0"
 
 java {
     toolchain {
@@ -32,7 +32,7 @@ project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 dependencies {
     // https://plugins.gradle.org/plugin/org.sonarqube
-    implementation("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:7.1.0.6387")
+    implementation("org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:7.2.2.6593")
 }
 
 gradlePlugin {

@@ -9,7 +9,7 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-version = "0.6.0"
+version = "0.7.0"
 
 java {
     toolchain {
@@ -32,7 +32,7 @@ project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 dependencies {
     // https://plugins.gradle.org/plugin/com.diffplug.spotless
-    implementation("com.diffplug.spotless:spotless-plugin-gradle:8.1.0")
+    implementation("com.diffplug.spotless:spotless-plugin-gradle:8.2.1")
 }
 
 gradlePlugin {
