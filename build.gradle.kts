@@ -1,11 +1,8 @@
 plugins {
     java
 
-    // https://plugins.gradle.org/plugin/com.gradle.plugin-publish
-    id("com.gradle.plugin-publish") version "2.1.0" apply false
-
     // https://plugins.gradle.org/plugin/com.diffplug.spotless
-    id("com.diffplug.spotless") version "8.3.0"
+    alias(libs.plugins.spotless)
 }
 
 java {

@@ -1,40 +1,15 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
-
 plugins {
     `kotlin-dsl`
-    `java-gradle-plugin`
-    `maven-publish`
-
-    id("com.gradle.plugin-publish")
+    id("tailrocks-conventions")
 }
 
 version = "0.11.0"
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
-}
-
-kotlin {
-    jvmToolchain(21)
-}
-
-project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    compilerOptions {
-        freeCompilerArgs.set(listOf("-Xjsr305=strict"))
-        jvmTarget.set(JvmTarget.JVM_21)
-        javaParameters.set(true)
-    }
-    jvmTargetValidationMode.set(JvmTargetValidationMode.WARNING)
-}
-
 dependencies {
     // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.jvm
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.21")
+    implementation(libs.kotlin.gradle.plugin)
     // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
-    implementation("org.jetbrains.kotlin:kotlin-allopen:2.2.21")
+    implementation(libs.kotlin.allopen)
 }
 
 gradlePlugin {
@@ -48,9 +23,4 @@ gradlePlugin {
             tags = listOf("conventions", "kotlin")
         }
     }
-}
-
-gradlePlugin {
-    website = "https://github.com/tailrocks/tailrocks-gradle-conventions"
-    vcsUrl = "https://github.com/tailrocks/tailrocks-gradle-conventions.git"
 }
