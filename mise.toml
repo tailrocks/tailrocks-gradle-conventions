@@ -1,2 +1,2 @@
 [tools]
-java = "oracle-graalvm-21.0.7"
+java = "oracle-graalvm-21.0.10+7.0.LTS"
