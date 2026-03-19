@@ -3,7 +3,7 @@ kotlin = "2.2.21"
 spotless = "8.3.0"
 sonarqube = "7.2.3.7755"
 versions-plugin = "0.53.0"
-gradle-plugin-publish = "2.1.0"
+gradle-plugin-publish = "2.1.1"
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
