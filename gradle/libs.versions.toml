@@ -2,7 +2,7 @@
 kotlin = "2.2.21"
 spotless = "8.4.0"
 sonarqube = "7.2.3.7755"
-versions-plugin = "0.53.0"
+versions-plugin = "0.54.0"
 gradle-plugin-publish = "2.1.1"
 
 [libraries]
