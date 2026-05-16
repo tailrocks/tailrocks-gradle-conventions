@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.2.21"
+kotlin = "2.3.21"
 spotless = "8.4.0"
 sonarqube = "7.2.3.7755"
 versions-plugin = "0.53.0"
