@@ -42,7 +42,7 @@ permissions:
 jobs:
   plan:
     name: "Control / Planning"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       scope: ${{ steps.plan.outputs.scope }}
       base_sha: ${{ steps.plan.outputs.base_sha }}
@@ -104,7 +104,7 @@ jobs:
   velnor-lane-admission:
     name: "Control / Velnor admission"
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
       - name: Velnor lane omitted for fork
@@ -112,7 +112,7 @@ jobs:
           echo '::notice::Velnor lane omitted for fork pull request; validating GitHub lane only.'
   policy:
     name: Policy
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     # Trust invariant: this job runs the base branch's validator against the
     # audited tree under pull_request_target. It holds `contents: read` only,
@@ -638,7 +638,7 @@ jobs:
     name: ci-required
     if: ${{ always() }}
     needs: [plan, velnor-lane-admission, policy, github-gradle, velnor-gradle, github-gradle-buildsrc, velnor-gradle-buildsrc, github-gradle-idea-conventions, velnor-gradle-idea-conventions, github-gradle-java-conventions, velnor-gradle-java-conventions, github-gradle-junit-conventions, velnor-gradle-junit-conventions, github-gradle-kotlin-conventions, velnor-gradle-kotlin-conventions, github-gradle-maven-publish-conventions, velnor-gradle-maven-publish-conventions, github-gradle-signing-conventions, velnor-gradle-signing-conventions, github-gradle-sonarqube-conventions, velnor-gradle-sonarqube-conventions, github-gradle-spotless-conventions, velnor-gradle-spotless-conventions, github-gradle-versions-conventions, velnor-gradle-versions-conventions]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
       - name: Validate generated stack results
@@ -1035,7 +1035,7 @@ jobs:
     name: "Control / Required"
     if: ${{ always() }}
     needs: [ci-required]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
       - name: Mirror CI / Required
