@@ -57,12 +57,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Set up Velnor workflow runtime
+        id: runtime
         if: ${{ runner.environment == 'github-hosted' }}
-        uses: tailrocks/velnor/.github/actions/setup-velnor-workflow@b9c3156cdb88e63c11b9e595a3e694b02238c09a
+        uses: tailrocks/velnor/.github/actions/setup-velnor-workflow@2773e123d8ea27d61d390e8862ffb87247ef9a13
         with:
-          rev: b9c3156cdb88e63c11b9e595a3e694b02238c09a
+          rev: 2773e123d8ea27d61d390e8862ffb87247ef9a13
       - name: Set trusted workflow policy revision
-        run: echo "VELNOR_WORKFLOW_POLICY_REVISION=b9c3156cdb88e63c11b9e595a3e694b02238c09a" >> "$GITHUB_ENV"
+        run: echo "VELNOR_WORKFLOW_POLICY_REVISION=2773e123d8ea27d61d390e8862ffb87247ef9a13" >> "$GITHUB_ENV"
       - name: Select affected units
         id: plan
         env:
@@ -79,7 +80,7 @@ jobs:
       - name: Prepare Velnor workflow runtime
         shell: bash
         env:
-          EXPECTED_REVISION: b9c3156cdb88e63c11b9e595a3e694b02238c09a
+          EXPECTED_REVISION: 2773e123d8ea27d61d390e8862ffb87247ef9a13
         run: |
           set -euo pipefail
           stage="$RUNNER_TEMP/velnor-workflow-runtime"
@@ -91,13 +92,14 @@ jobs:
           policy_src="${VELNOR_WORKFLOW_PINNED_BINARY:-$src}"
           install -m 0755 "$policy_src" "$stage/velnor-workflow-policy"
           policy_revision="$("$stage/velnor-workflow-policy" --revision)"
-          [[ "$policy_revision" == "$EXPECTED_REVISION" ]] || { echo "::error::policy runtime reports revision $policy_revision, expected $EXPECTED_REVISION" >&2; exit 1; }
+          policy_closure="$("$stage/velnor-workflow-policy" --closure)"
+          [[ "$policy_closure" == "${{ steps.runtime.outputs.closure }}" ]] || { echo "::error::policy runtime reports closure $policy_closure, expected ${{ steps.runtime.outputs.closure }}" >&2; exit 1; }
           policy_digest="$(sha256sum "$stage/velnor-workflow-policy" | awk '{print $1}')"
-          jq -n --arg repository "$GITHUB_REPOSITORY" --arg revision "$EXPECTED_REVISION" --arg head_branch "${{ github.ref_name }}" --arg platform "${{ runner.os }}-${{ runner.arch }}" --arg run_id "$GITHUB_RUN_ID" --arg job_id "${{ github.job }}" --arg binary_sha256 "$digest" --arg policy_revision "$policy_revision" --arg policy_binary_sha256 "$policy_digest" '{repository: $repository, revision: $revision, head_branch: $head_branch, platform: $platform, run_id: $run_id, job_id: $job_id, binary_sha256: $binary_sha256, policy_revision: $policy_revision, policy_binary_sha256: $policy_binary_sha256}' > "$stage/manifest.json"
+          jq -n --arg repository "$GITHUB_REPOSITORY" --arg revision "$EXPECTED_REVISION" --arg closure "${{ steps.runtime.outputs.closure }}" --arg head_branch "${{ github.ref_name }}" --arg platform "${{ runner.os }}-${{ runner.arch }}" --arg run_id "$GITHUB_RUN_ID" --arg job_id "${{ github.job }}" --arg binary_sha256 "$digest" --arg policy_revision "$policy_revision" --arg policy_closure "$policy_closure" --arg policy_binary_sha256 "$policy_digest" '{repository: $repository, revision: $revision, closure: $closure, head_branch: $head_branch, platform: $platform, run_id: $run_id, job_id: $job_id, binary_sha256: $binary_sha256, policy_revision: $policy_revision, policy_closure: $policy_closure, policy_binary_sha256: $policy_binary_sha256}' > "$stage/manifest.json"
       - name: Publish Velnor workflow runtime
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: velnor-workflow-runtime-b9c3156cdb88e63c11b9e595a3e694b02238c09a-${{ runner.os }}-${{ runner.arch }}
+          name: velnor-workflow-runtime-2773e123d8ea27d61d390e8862ffb87247ef9a13-${{ runner.os }}-${{ runner.arch }}
           path: ${{ runner.temp }}/velnor-workflow-runtime
           if-no-files-found: error
           retention-days: 7
@@ -114,11 +116,16 @@ jobs:
     name: Policy
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    # Trust invariant: this job runs the base branch's validator against the
-    # audited tree under pull_request_target. It holds `contents: read` only,
-    # references no secrets, and its checkout persists no credentials, so
-    # building and running the tree's declared generator here is no more
-    # privileged than the pull_request lanes that already build the tree.
+    # Trust invariant: this job runs the base branch's Stage-0 validator
+    # product against the audited tree under pull_request_target. It holds
+    # `contents: read` only, references no secrets, persists no credentials,
+    # and never compiles. When the audited pin's closure differs from the
+    # base validator's, it additionally EXECUTES the PR run's prebuilt
+    # candidate generator — PR-built code, same-repository runs only, bound
+    # to the audited tree by manifest closure plus binary digest before
+    # execution — with no secret references, no persisted credentials, the
+    # read-only github.token confined to the Acquire/Ruleset API steps,
+    # and both candidate exec points tokenless.
     permissions:
       contents: read
     steps:
@@ -139,39 +146,34 @@ jobs:
             git fetch --no-tags "$GITHUB_SERVER_URL/$HEAD_REPOSITORY" "$HEAD_SHA"
           fi
           git checkout --quiet --detach "$HEAD_SHA"
-      - name: Bound the Mr. Boxington store
-        shell: bash
-        run: echo "MBX_GC_MAX_SIZE=12GiB" >> "$GITHUB_ENV"
-      - name: Set up Mr. Boxington
-        uses: jdx/mr-boxington-action@7234d3dd1a6ca8f6c381eea8e4dfb03f18fcf777 # v1.3.0
+      - name: Set up Velnor workflow runtime
+        uses: tailrocks/velnor/.github/actions/setup-velnor-workflow@2773e123d8ea27d61d390e8862ffb87247ef9a13
         with:
-          backend: github
-          version: 1.11.1
-          cache-key: velnor-policy-mbx-1.11.1-${{ runner.os }}-${{ runner.arch }}-b9c3156cdb88e63c11b9e595a3e694b02238c09a
-          restore-keys: |
-            velnor-policy-mbx-1.11.1-${{ runner.os }}-${{ runner.arch }}-
-      - name: Install pinned Velnor workflow runtime
-        env:
-          CARGO_HOME: ${{ runner.temp }}/velnor-workflow-cargo-home
-          CARGO_TARGET_DIR: ${{ runner.temp }}/velnor-workflow-cargo-target
-          VELNOR_WORKFLOW_INSTALL_DIR: ${{ runner.temp }}/velnor-workflow-install
-          VELNOR_WORKFLOW_ROOT: ${{ runner.temp }}/velnor-workflow
+          rev: 2773e123d8ea27d61d390e8862ffb87247ef9a13
+          checkout-path: ${{ github.workspace }}/policy-checkout
+      - name: Read declared generator pin
+        id: pin
+        working-directory: policy-checkout
         run: |
           set -euo pipefail
-          install -d -m 700 \
-            "$CARGO_HOME" \
-            "$CARGO_TARGET_DIR" \
-            "$VELNOR_WORKFLOW_INSTALL_DIR"
-          cd "$VELNOR_WORKFLOW_INSTALL_DIR"
-          env -u RUSTC_WRAPPER -u SCCACHE_GHA_ENABLED -u CARGO_INCREMENTAL -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS \
-            cargo install \
-            --locked \
-            --git https://github.com/tailrocks/velnor \
-            --rev b9c3156cdb88e63c11b9e595a3e694b02238c09a \
-            --root "$VELNOR_WORKFLOW_ROOT" \
-            velnor-workflow \
-            --bin velnor-workflow
-          echo "$VELNOR_WORKFLOW_ROOT/bin" >> "$GITHUB_PATH"
+          pin="$(sed -n -E 's/^[[:space:]]*revision[[:space:]]*=[[:space:]]*"([0-9a-f]{40})".*/\1/p' .github-gen/velnor-workflow.toml | head -n 1)"
+          test "$pin" != '' || pin="$(sed -n -E 's/^.*VELNOR_WORKFLOW_POLICY_REVISION:[[:space:]]*([0-9a-f]{40}).*/\1/p' .github/workflows/ci-policy.yml | head -n 1)"
+          test "$pin" != '' || { echo "::error::audited tree declares no generator pin" >&2; exit 1; }
+          echo "value=$pin" >> "$GITHUB_OUTPUT"
+      - name: Set up declared generator product
+        id: renderer
+        if: steps.pin.outputs.value != '2773e123d8ea27d61d390e8862ffb87247ef9a13'
+        uses: tailrocks/velnor/.github/actions/setup-velnor-workflow@2773e123d8ea27d61d390e8862ffb87247ef9a13
+        with:
+          rev: ${{ steps.pin.outputs.value }}
+          checkout-path: ${{ github.workspace }}/policy-checkout
+      - name: Resolve declared generator product
+        if: steps.pin.outputs.value != '2773e123d8ea27d61d390e8862ffb87247ef9a13'
+        run: |
+          set -euo pipefail
+          binary="$HOME/.cache/velnor/workflow-runtime/${{ steps.renderer.outputs.closure }}/bin/velnor-workflow"
+          test -x "$binary"
+          echo "VELNOR_WORKFLOW_PINNED_BINARY=$binary" >> "$GITHUB_ENV"
       - name: Resolve required status checks
         env:
           GH_TOKEN: ${{ github.token }}
@@ -200,14 +202,16 @@ jobs:
           WORKFLOW_ROOT: ${{ github.workspace }}/policy-checkout
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
-          VELNOR_WORKFLOW_POLICY_REVISION: b9c3156cdb88e63c11b9e595a3e694b02238c09a
+          VELNOR_WORKFLOW_POLICY_REVISION: 2773e123d8ea27d61d390e8862ffb87247ef9a13
         run: |
           set -euo pipefail
           velnor-workflow policy \
             --workflow-root "$WORKFLOW_ROOT" \
             --head-sha "$HEAD_SHA" \
             --base-sha "$BASE_SHA" \
+            --candidate-manifest "${VELNOR_WORKFLOW_CANDIDATE_MANIFEST:-}" \
             --ruleset-contexts "$RULESET_CONTEXTS"
+
       - name: Set up actionlint
         uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
         with:
@@ -215,10 +219,12 @@ jobs:
           cache: false
       - name: Lint caller workflows
         working-directory: policy-checkout
+        env:
+          MISE_NO_CONFIG: "1"
         run: mise exec actionlint@1.7.12 -- actionlint
   github-gradle:
     name: "Gradle · Gradle"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle,') }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle,') && (github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'github' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -237,7 +243,7 @@ jobs:
         gradle/libs.versions.toml
   velnor-gradle:
     name: "Gradle · Gradle"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle,') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle,') && ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'velnor' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -256,7 +262,7 @@ jobs:
         gradle/libs.versions.toml
   github-gradle-buildsrc:
     name: "Gradle · Gradle (buildSrc)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-buildsrc,') }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-buildsrc,') && (github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'github' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -275,7 +281,7 @@ jobs:
         buildSrc/gradle/libs.versions.toml
   velnor-gradle-buildsrc:
     name: "Gradle · Gradle (buildSrc)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-buildsrc,') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-buildsrc,') && ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'velnor' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -294,7 +300,7 @@ jobs:
         buildSrc/gradle/libs.versions.toml
   github-gradle-idea-conventions:
     name: "Gradle · Gradle (idea-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-idea-conventions,') }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-idea-conventions,') && (github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'github' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -313,7 +319,7 @@ jobs:
         gradle/libs.versions.toml
   velnor-gradle-idea-conventions:
     name: "Gradle · Gradle (idea-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-idea-conventions,') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-idea-conventions,') && ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'velnor' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -332,7 +338,7 @@ jobs:
         gradle/libs.versions.toml
   github-gradle-java-conventions:
     name: "Gradle · Gradle (java-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-java-conventions,') }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-java-conventions,') && (github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'github' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -351,7 +357,7 @@ jobs:
         gradle/libs.versions.toml
   velnor-gradle-java-conventions:
     name: "Gradle · Gradle (java-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-java-conventions,') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-java-conventions,') && ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'velnor' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -370,7 +376,7 @@ jobs:
         gradle/libs.versions.toml
   github-gradle-junit-conventions:
     name: "Gradle · Gradle (junit-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-junit-conventions,') }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-junit-conventions,') && (github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'github' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -389,7 +395,7 @@ jobs:
         gradle/libs.versions.toml
   velnor-gradle-junit-conventions:
     name: "Gradle · Gradle (junit-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-junit-conventions,') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-junit-conventions,') && ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'velnor' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -408,7 +414,7 @@ jobs:
         gradle/libs.versions.toml
   github-gradle-kotlin-conventions:
     name: "Gradle · Gradle (kotlin-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-kotlin-conventions,') }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-kotlin-conventions,') && (github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'github' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -427,7 +433,7 @@ jobs:
         gradle/libs.versions.toml
   velnor-gradle-kotlin-conventions:
     name: "Gradle · Gradle (kotlin-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-kotlin-conventions,') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-kotlin-conventions,') && ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'velnor' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -446,7 +452,7 @@ jobs:
         gradle/libs.versions.toml
   github-gradle-maven-publish-conventions:
     name: "Gradle · Gradle (maven-publish-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-maven-publish-conventions,') }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-maven-publish-conventions,') && (github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'github' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -465,7 +471,7 @@ jobs:
         gradle/libs.versions.toml
   velnor-gradle-maven-publish-conventions:
     name: "Gradle · Gradle (maven-publish-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-maven-publish-conventions,') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-maven-publish-conventions,') && ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'velnor' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -484,7 +490,7 @@ jobs:
         gradle/libs.versions.toml
   github-gradle-signing-conventions:
     name: "Gradle · Gradle (signing-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-signing-conventions,') }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-signing-conventions,') && (github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'github' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -503,7 +509,7 @@ jobs:
         gradle/libs.versions.toml
   velnor-gradle-signing-conventions:
     name: "Gradle · Gradle (signing-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-signing-conventions,') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-signing-conventions,') && ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'velnor' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -522,7 +528,7 @@ jobs:
         gradle/libs.versions.toml
   github-gradle-sonarqube-conventions:
     name: "Gradle · Gradle (sonarqube-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-sonarqube-conventions,') }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-sonarqube-conventions,') && (github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'github' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -541,7 +547,7 @@ jobs:
         gradle/libs.versions.toml
   velnor-gradle-sonarqube-conventions:
     name: "Gradle · Gradle (sonarqube-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-sonarqube-conventions,') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-sonarqube-conventions,') && ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'velnor' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -560,7 +566,7 @@ jobs:
         gradle/libs.versions.toml
   github-gradle-spotless-conventions:
     name: "Gradle · Gradle (spotless-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-spotless-conventions,') }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-spotless-conventions,') && (github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'github' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -579,7 +585,7 @@ jobs:
         gradle/libs.versions.toml
   velnor-gradle-spotless-conventions:
     name: "Gradle · Gradle (spotless-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-spotless-conventions,') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-spotless-conventions,') && ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'velnor' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -598,7 +604,7 @@ jobs:
         gradle/libs.versions.toml
   github-gradle-versions-conventions:
     name: "Gradle · Gradle (versions-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-versions-conventions,') }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-versions-conventions,') && (github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'github' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -617,7 +623,7 @@ jobs:
         gradle/libs.versions.toml
   velnor-gradle-versions-conventions:
     name: "Gradle · Gradle (versions-conventions)"
-    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-versions-conventions,') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    if: ${{ always() && needs.plan.result == 'success' && needs.policy.result == 'success' && contains(format(',{0},', needs.plan.outputs.units), ',gradle-versions-conventions,') && ((github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'velnor' || github.event.inputs.runner == 'both' || github.event.inputs.runner == ''))) }}
     needs: [plan, policy]
     uses: ./.github/workflows/ci-unit-gradle.yml
     with:
@@ -645,7 +651,8 @@ jobs:
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}
           SELECTED_UNITS: ${{ needs.plan.outputs.units }}
-          FORK_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+          LANE_ADMITTED_GITHUB: ${{ github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'github' || github.event.inputs.runner == 'both' || github.event.inputs.runner == '')) }}
+          LANE_ADMITTED_VELNOR: ${{ (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.runner == 'velnor' || github.event.inputs.runner == 'both' || github.event.inputs.runner == '')) }}
         shell: bash
         run: |
           set -euo pipefail
@@ -670,10 +677,17 @@ jobs:
           selected=",$SELECTED_UNITS,"
           if [[ "$selected" == *",gradle,"* ]]; then
             result="$(result_for_job github-gradle)"
-            case "$result" in
-              success) ;;
-              *) echo "selected CI job github-gradle did not pass: $result" >&2; exit 1 ;;
-            esac
+            if [[ "$LANE_ADMITTED_GITHUB" == true ]]; then
+              case "$result" in
+                success) ;;
+                *) echo "selected CI job github-gradle did not pass: $result" >&2; exit 1 ;;
+              esac
+            else
+              case "$result" in
+                skipped) ;;
+                *) echo "selected CI job github-gradle ran outside its lane admission (LANE_ADMITTED_GITHUB=$LANE_ADMITTED_GITHUB): $result" >&2; exit 1 ;;
+              esac
+            fi
           else
             result="$(result_for_job github-gradle)"
             case "$result" in
@@ -683,15 +697,15 @@ jobs:
           fi
           if [[ "$selected" == *",gradle,"* ]]; then
             result="$(result_for_job velnor-gradle)"
-            if [[ "$FORK_PR" == true ]]; then
+            if [[ "$LANE_ADMITTED_VELNOR" == true ]]; then
               case "$result" in
-                success|skipped) ;;
+                success) ;;
                 *) echo "selected CI job velnor-gradle did not pass: $result" >&2; exit 1 ;;
               esac
             else
               case "$result" in
-                success) ;;
-                *) echo "selected CI job velnor-gradle did not pass: $result" >&2; exit 1 ;;
+                skipped) ;;
+                *) echo "selected CI job velnor-gradle ran outside its lane admission (LANE_ADMITTED_VELNOR=$LANE_ADMITTED_VELNOR): $result" >&2; exit 1 ;;
               esac
             fi
           else
@@ -703,10 +717,17 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-buildsrc,"* ]]; then
             result="$(result_for_job github-gradle-buildsrc)"
-            case "$result" in
-              success) ;;
-              *) echo "selected CI job github-gradle-buildsrc did not pass: $result" >&2; exit 1 ;;
-            esac
+            if [[ "$LANE_ADMITTED_GITHUB" == true ]]; then
+              case "$result" in
+                success) ;;
+                *) echo "selected CI job github-gradle-buildsrc did not pass: $result" >&2; exit 1 ;;
+              esac
+            else
+              case "$result" in
+                skipped) ;;
+                *) echo "selected CI job github-gradle-buildsrc ran outside its lane admission (LANE_ADMITTED_GITHUB=$LANE_ADMITTED_GITHUB): $result" >&2; exit 1 ;;
+              esac
+            fi
           else
             result="$(result_for_job github-gradle-buildsrc)"
             case "$result" in
@@ -716,15 +737,15 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-buildsrc,"* ]]; then
             result="$(result_for_job velnor-gradle-buildsrc)"
-            if [[ "$FORK_PR" == true ]]; then
+            if [[ "$LANE_ADMITTED_VELNOR" == true ]]; then
               case "$result" in
-                success|skipped) ;;
+                success) ;;
                 *) echo "selected CI job velnor-gradle-buildsrc did not pass: $result" >&2; exit 1 ;;
               esac
             else
               case "$result" in
-                success) ;;
-                *) echo "selected CI job velnor-gradle-buildsrc did not pass: $result" >&2; exit 1 ;;
+                skipped) ;;
+                *) echo "selected CI job velnor-gradle-buildsrc ran outside its lane admission (LANE_ADMITTED_VELNOR=$LANE_ADMITTED_VELNOR): $result" >&2; exit 1 ;;
               esac
             fi
           else
@@ -736,10 +757,17 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-idea-conventions,"* ]]; then
             result="$(result_for_job github-gradle-idea-conventions)"
-            case "$result" in
-              success) ;;
-              *) echo "selected CI job github-gradle-idea-conventions did not pass: $result" >&2; exit 1 ;;
-            esac
+            if [[ "$LANE_ADMITTED_GITHUB" == true ]]; then
+              case "$result" in
+                success) ;;
+                *) echo "selected CI job github-gradle-idea-conventions did not pass: $result" >&2; exit 1 ;;
+              esac
+            else
+              case "$result" in
+                skipped) ;;
+                *) echo "selected CI job github-gradle-idea-conventions ran outside its lane admission (LANE_ADMITTED_GITHUB=$LANE_ADMITTED_GITHUB): $result" >&2; exit 1 ;;
+              esac
+            fi
           else
             result="$(result_for_job github-gradle-idea-conventions)"
             case "$result" in
@@ -749,15 +777,15 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-idea-conventions,"* ]]; then
             result="$(result_for_job velnor-gradle-idea-conventions)"
-            if [[ "$FORK_PR" == true ]]; then
+            if [[ "$LANE_ADMITTED_VELNOR" == true ]]; then
               case "$result" in
-                success|skipped) ;;
+                success) ;;
                 *) echo "selected CI job velnor-gradle-idea-conventions did not pass: $result" >&2; exit 1 ;;
               esac
             else
               case "$result" in
-                success) ;;
-                *) echo "selected CI job velnor-gradle-idea-conventions did not pass: $result" >&2; exit 1 ;;
+                skipped) ;;
+                *) echo "selected CI job velnor-gradle-idea-conventions ran outside its lane admission (LANE_ADMITTED_VELNOR=$LANE_ADMITTED_VELNOR): $result" >&2; exit 1 ;;
               esac
             fi
           else
@@ -769,10 +797,17 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-java-conventions,"* ]]; then
             result="$(result_for_job github-gradle-java-conventions)"
-            case "$result" in
-              success) ;;
-              *) echo "selected CI job github-gradle-java-conventions did not pass: $result" >&2; exit 1 ;;
-            esac
+            if [[ "$LANE_ADMITTED_GITHUB" == true ]]; then
+              case "$result" in
+                success) ;;
+                *) echo "selected CI job github-gradle-java-conventions did not pass: $result" >&2; exit 1 ;;
+              esac
+            else
+              case "$result" in
+                skipped) ;;
+                *) echo "selected CI job github-gradle-java-conventions ran outside its lane admission (LANE_ADMITTED_GITHUB=$LANE_ADMITTED_GITHUB): $result" >&2; exit 1 ;;
+              esac
+            fi
           else
             result="$(result_for_job github-gradle-java-conventions)"
             case "$result" in
@@ -782,15 +817,15 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-java-conventions,"* ]]; then
             result="$(result_for_job velnor-gradle-java-conventions)"
-            if [[ "$FORK_PR" == true ]]; then
+            if [[ "$LANE_ADMITTED_VELNOR" == true ]]; then
               case "$result" in
-                success|skipped) ;;
+                success) ;;
                 *) echo "selected CI job velnor-gradle-java-conventions did not pass: $result" >&2; exit 1 ;;
               esac
             else
               case "$result" in
-                success) ;;
-                *) echo "selected CI job velnor-gradle-java-conventions did not pass: $result" >&2; exit 1 ;;
+                skipped) ;;
+                *) echo "selected CI job velnor-gradle-java-conventions ran outside its lane admission (LANE_ADMITTED_VELNOR=$LANE_ADMITTED_VELNOR): $result" >&2; exit 1 ;;
               esac
             fi
           else
@@ -802,10 +837,17 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-junit-conventions,"* ]]; then
             result="$(result_for_job github-gradle-junit-conventions)"
-            case "$result" in
-              success) ;;
-              *) echo "selected CI job github-gradle-junit-conventions did not pass: $result" >&2; exit 1 ;;
-            esac
+            if [[ "$LANE_ADMITTED_GITHUB" == true ]]; then
+              case "$result" in
+                success) ;;
+                *) echo "selected CI job github-gradle-junit-conventions did not pass: $result" >&2; exit 1 ;;
+              esac
+            else
+              case "$result" in
+                skipped) ;;
+                *) echo "selected CI job github-gradle-junit-conventions ran outside its lane admission (LANE_ADMITTED_GITHUB=$LANE_ADMITTED_GITHUB): $result" >&2; exit 1 ;;
+              esac
+            fi
           else
             result="$(result_for_job github-gradle-junit-conventions)"
             case "$result" in
@@ -815,15 +857,15 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-junit-conventions,"* ]]; then
             result="$(result_for_job velnor-gradle-junit-conventions)"
-            if [[ "$FORK_PR" == true ]]; then
+            if [[ "$LANE_ADMITTED_VELNOR" == true ]]; then
               case "$result" in
-                success|skipped) ;;
+                success) ;;
                 *) echo "selected CI job velnor-gradle-junit-conventions did not pass: $result" >&2; exit 1 ;;
               esac
             else
               case "$result" in
-                success) ;;
-                *) echo "selected CI job velnor-gradle-junit-conventions did not pass: $result" >&2; exit 1 ;;
+                skipped) ;;
+                *) echo "selected CI job velnor-gradle-junit-conventions ran outside its lane admission (LANE_ADMITTED_VELNOR=$LANE_ADMITTED_VELNOR): $result" >&2; exit 1 ;;
               esac
             fi
           else
@@ -835,10 +877,17 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-kotlin-conventions,"* ]]; then
             result="$(result_for_job github-gradle-kotlin-conventions)"
-            case "$result" in
-              success) ;;
-              *) echo "selected CI job github-gradle-kotlin-conventions did not pass: $result" >&2; exit 1 ;;
-            esac
+            if [[ "$LANE_ADMITTED_GITHUB" == true ]]; then
+              case "$result" in
+                success) ;;
+                *) echo "selected CI job github-gradle-kotlin-conventions did not pass: $result" >&2; exit 1 ;;
+              esac
+            else
+              case "$result" in
+                skipped) ;;
+                *) echo "selected CI job github-gradle-kotlin-conventions ran outside its lane admission (LANE_ADMITTED_GITHUB=$LANE_ADMITTED_GITHUB): $result" >&2; exit 1 ;;
+              esac
+            fi
           else
             result="$(result_for_job github-gradle-kotlin-conventions)"
             case "$result" in
@@ -848,15 +897,15 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-kotlin-conventions,"* ]]; then
             result="$(result_for_job velnor-gradle-kotlin-conventions)"
-            if [[ "$FORK_PR" == true ]]; then
+            if [[ "$LANE_ADMITTED_VELNOR" == true ]]; then
               case "$result" in
-                success|skipped) ;;
+                success) ;;
                 *) echo "selected CI job velnor-gradle-kotlin-conventions did not pass: $result" >&2; exit 1 ;;
               esac
             else
               case "$result" in
-                success) ;;
-                *) echo "selected CI job velnor-gradle-kotlin-conventions did not pass: $result" >&2; exit 1 ;;
+                skipped) ;;
+                *) echo "selected CI job velnor-gradle-kotlin-conventions ran outside its lane admission (LANE_ADMITTED_VELNOR=$LANE_ADMITTED_VELNOR): $result" >&2; exit 1 ;;
               esac
             fi
           else
@@ -868,10 +917,17 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-maven-publish-conventions,"* ]]; then
             result="$(result_for_job github-gradle-maven-publish-conventions)"
-            case "$result" in
-              success) ;;
-              *) echo "selected CI job github-gradle-maven-publish-conventions did not pass: $result" >&2; exit 1 ;;
-            esac
+            if [[ "$LANE_ADMITTED_GITHUB" == true ]]; then
+              case "$result" in
+                success) ;;
+                *) echo "selected CI job github-gradle-maven-publish-conventions did not pass: $result" >&2; exit 1 ;;
+              esac
+            else
+              case "$result" in
+                skipped) ;;
+                *) echo "selected CI job github-gradle-maven-publish-conventions ran outside its lane admission (LANE_ADMITTED_GITHUB=$LANE_ADMITTED_GITHUB): $result" >&2; exit 1 ;;
+              esac
+            fi
           else
             result="$(result_for_job github-gradle-maven-publish-conventions)"
             case "$result" in
@@ -881,15 +937,15 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-maven-publish-conventions,"* ]]; then
             result="$(result_for_job velnor-gradle-maven-publish-conventions)"
-            if [[ "$FORK_PR" == true ]]; then
+            if [[ "$LANE_ADMITTED_VELNOR" == true ]]; then
               case "$result" in
-                success|skipped) ;;
+                success) ;;
                 *) echo "selected CI job velnor-gradle-maven-publish-conventions did not pass: $result" >&2; exit 1 ;;
               esac
             else
               case "$result" in
-                success) ;;
-                *) echo "selected CI job velnor-gradle-maven-publish-conventions did not pass: $result" >&2; exit 1 ;;
+                skipped) ;;
+                *) echo "selected CI job velnor-gradle-maven-publish-conventions ran outside its lane admission (LANE_ADMITTED_VELNOR=$LANE_ADMITTED_VELNOR): $result" >&2; exit 1 ;;
               esac
             fi
           else
@@ -901,10 +957,17 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-signing-conventions,"* ]]; then
             result="$(result_for_job github-gradle-signing-conventions)"
-            case "$result" in
-              success) ;;
-              *) echo "selected CI job github-gradle-signing-conventions did not pass: $result" >&2; exit 1 ;;
-            esac
+            if [[ "$LANE_ADMITTED_GITHUB" == true ]]; then
+              case "$result" in
+                success) ;;
+                *) echo "selected CI job github-gradle-signing-conventions did not pass: $result" >&2; exit 1 ;;
+              esac
+            else
+              case "$result" in
+                skipped) ;;
+                *) echo "selected CI job github-gradle-signing-conventions ran outside its lane admission (LANE_ADMITTED_GITHUB=$LANE_ADMITTED_GITHUB): $result" >&2; exit 1 ;;
+              esac
+            fi
           else
             result="$(result_for_job github-gradle-signing-conventions)"
             case "$result" in
@@ -914,15 +977,15 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-signing-conventions,"* ]]; then
             result="$(result_for_job velnor-gradle-signing-conventions)"
-            if [[ "$FORK_PR" == true ]]; then
+            if [[ "$LANE_ADMITTED_VELNOR" == true ]]; then
               case "$result" in
-                success|skipped) ;;
+                success) ;;
                 *) echo "selected CI job velnor-gradle-signing-conventions did not pass: $result" >&2; exit 1 ;;
               esac
             else
               case "$result" in
-                success) ;;
-                *) echo "selected CI job velnor-gradle-signing-conventions did not pass: $result" >&2; exit 1 ;;
+                skipped) ;;
+                *) echo "selected CI job velnor-gradle-signing-conventions ran outside its lane admission (LANE_ADMITTED_VELNOR=$LANE_ADMITTED_VELNOR): $result" >&2; exit 1 ;;
               esac
             fi
           else
@@ -934,10 +997,17 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-sonarqube-conventions,"* ]]; then
             result="$(result_for_job github-gradle-sonarqube-conventions)"
-            case "$result" in
-              success) ;;
-              *) echo "selected CI job github-gradle-sonarqube-conventions did not pass: $result" >&2; exit 1 ;;
-            esac
+            if [[ "$LANE_ADMITTED_GITHUB" == true ]]; then
+              case "$result" in
+                success) ;;
+                *) echo "selected CI job github-gradle-sonarqube-conventions did not pass: $result" >&2; exit 1 ;;
+              esac
+            else
+              case "$result" in
+                skipped) ;;
+                *) echo "selected CI job github-gradle-sonarqube-conventions ran outside its lane admission (LANE_ADMITTED_GITHUB=$LANE_ADMITTED_GITHUB): $result" >&2; exit 1 ;;
+              esac
+            fi
           else
             result="$(result_for_job github-gradle-sonarqube-conventions)"
             case "$result" in
@@ -947,15 +1017,15 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-sonarqube-conventions,"* ]]; then
             result="$(result_for_job velnor-gradle-sonarqube-conventions)"
-            if [[ "$FORK_PR" == true ]]; then
+            if [[ "$LANE_ADMITTED_VELNOR" == true ]]; then
               case "$result" in
-                success|skipped) ;;
+                success) ;;
                 *) echo "selected CI job velnor-gradle-sonarqube-conventions did not pass: $result" >&2; exit 1 ;;
               esac
             else
               case "$result" in
-                success) ;;
-                *) echo "selected CI job velnor-gradle-sonarqube-conventions did not pass: $result" >&2; exit 1 ;;
+                skipped) ;;
+                *) echo "selected CI job velnor-gradle-sonarqube-conventions ran outside its lane admission (LANE_ADMITTED_VELNOR=$LANE_ADMITTED_VELNOR): $result" >&2; exit 1 ;;
               esac
             fi
           else
@@ -967,10 +1037,17 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-spotless-conventions,"* ]]; then
             result="$(result_for_job github-gradle-spotless-conventions)"
-            case "$result" in
-              success) ;;
-              *) echo "selected CI job github-gradle-spotless-conventions did not pass: $result" >&2; exit 1 ;;
-            esac
+            if [[ "$LANE_ADMITTED_GITHUB" == true ]]; then
+              case "$result" in
+                success) ;;
+                *) echo "selected CI job github-gradle-spotless-conventions did not pass: $result" >&2; exit 1 ;;
+              esac
+            else
+              case "$result" in
+                skipped) ;;
+                *) echo "selected CI job github-gradle-spotless-conventions ran outside its lane admission (LANE_ADMITTED_GITHUB=$LANE_ADMITTED_GITHUB): $result" >&2; exit 1 ;;
+              esac
+            fi
           else
             result="$(result_for_job github-gradle-spotless-conventions)"
             case "$result" in
@@ -980,15 +1057,15 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-spotless-conventions,"* ]]; then
             result="$(result_for_job velnor-gradle-spotless-conventions)"
-            if [[ "$FORK_PR" == true ]]; then
+            if [[ "$LANE_ADMITTED_VELNOR" == true ]]; then
               case "$result" in
-                success|skipped) ;;
+                success) ;;
                 *) echo "selected CI job velnor-gradle-spotless-conventions did not pass: $result" >&2; exit 1 ;;
               esac
             else
               case "$result" in
-                success) ;;
-                *) echo "selected CI job velnor-gradle-spotless-conventions did not pass: $result" >&2; exit 1 ;;
+                skipped) ;;
+                *) echo "selected CI job velnor-gradle-spotless-conventions ran outside its lane admission (LANE_ADMITTED_VELNOR=$LANE_ADMITTED_VELNOR): $result" >&2; exit 1 ;;
               esac
             fi
           else
@@ -1000,10 +1077,17 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-versions-conventions,"* ]]; then
             result="$(result_for_job github-gradle-versions-conventions)"
-            case "$result" in
-              success) ;;
-              *) echo "selected CI job github-gradle-versions-conventions did not pass: $result" >&2; exit 1 ;;
-            esac
+            if [[ "$LANE_ADMITTED_GITHUB" == true ]]; then
+              case "$result" in
+                success) ;;
+                *) echo "selected CI job github-gradle-versions-conventions did not pass: $result" >&2; exit 1 ;;
+              esac
+            else
+              case "$result" in
+                skipped) ;;
+                *) echo "selected CI job github-gradle-versions-conventions ran outside its lane admission (LANE_ADMITTED_GITHUB=$LANE_ADMITTED_GITHUB): $result" >&2; exit 1 ;;
+              esac
+            fi
           else
             result="$(result_for_job github-gradle-versions-conventions)"
             case "$result" in
@@ -1013,15 +1097,15 @@ jobs:
           fi
           if [[ "$selected" == *",gradle-versions-conventions,"* ]]; then
             result="$(result_for_job velnor-gradle-versions-conventions)"
-            if [[ "$FORK_PR" == true ]]; then
+            if [[ "$LANE_ADMITTED_VELNOR" == true ]]; then
               case "$result" in
-                success|skipped) ;;
+                success) ;;
                 *) echo "selected CI job velnor-gradle-versions-conventions did not pass: $result" >&2; exit 1 ;;
               esac
             else
               case "$result" in
-                success) ;;
-                *) echo "selected CI job velnor-gradle-versions-conventions did not pass: $result" >&2; exit 1 ;;
+                skipped) ;;
+                *) echo "selected CI job velnor-gradle-versions-conventions ran outside its lane admission (LANE_ADMITTED_VELNOR=$LANE_ADMITTED_VELNOR): $result" >&2; exit 1 ;;
               esac
             fi
           else
