@@ -2,7 +2,7 @@ schema = 1
 
 [generator]
 repository = "tailrocks/tailrocks-gradle-conventions"
-revision = "b9c3156cdb88e63c11b9e595a3e694b02238c09a"
+revision = "2773e123d8ea27d61d390e8862ffb87247ef9a13"
 
 [workflow]
 runners = "both"
