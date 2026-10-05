@@ -7,8 +7,8 @@ generator	49
 [outputs]
 .github/actionlint.yaml	ec35f48ae7e90e0e
 .github/ci/project.toml	3782798b648bfba1
-.github/workflows/ci-main.yml	869b41b99725bae4
-.github/workflows/ci-policy.yml	a9a48676140ac8dd
+.github/workflows/ci-main.yml	f73e49600e8a6e24
+.github/workflows/ci-policy.yml	29d78b9957b5e17f
 .github/workflows/ci-pr.yml	f82cebce28f89eb0
 .github/workflows/ci-unit-gradle.yml	a8a769d0f75f737d
 .github/workflows/maintenance.yml	44cdcd6db1e77d43
